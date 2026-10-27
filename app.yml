@@ -1,0 +1,127 @@
+# yaml-language-server: $schema=https://schemas.pennsieve.io/app-manifest/v1.json
+schemaVersion: "1.0"
+application:
+  name: Brain Volumetrics Report
+  description: >-
+    The report step of the Clinical Brain MRI Volumetrics workflow. It gathers what the
+    upstream steps produced (SynthSeg volumes, QC scores and label maps, the skull-stripped
+    T1w and brain mask, the MNI-warped T1w and its registration check, WMH masks and lesion
+    tables, image metadata), derives per-subject volumetrics (ICV, tissue fractions,
+    left/right asymmetry, WMH load, screening flags) and writes an offline HTML report per
+    subject and for the cohort, with nilearn overlays (Abraham et al. 2014), plus a cohort
+    CSV and a metrics JSON. Every input is optional; a subject needs a volumes CSV or a
+    label map to be reported.
+  type: processor
+  tags:
+    - neuroimaging
+    - mri
+    - nifti
+    - report
+    - nilearn
+    - synthseg
+runtime:
+  cpu: 2048
+  memory: 8192
+  # standard (ECS) by default; a workflow can run this light step as a Lambda
+  # function instead (the image serves both, see processor/entry.py).
+  computeTypes:
+    - standard
+    - lambda
+  timeoutSeconds: 900
+parameters:
+  - name: REPORT_TITLE
+    type: string
+    description: Title shown on the cohort and subject pages.
+    defaultValue: "Clinical Brain MRI Volumetrics"
+  - name: FLAG_THRESHOLDS
+    type: string
+    description: >-
+      JSON object overriding the screening thresholds (keys: icv_min_ml, icv_max_ml,
+      ai_hippocampus_max, lateral_ventricles_pct_icv_max, hippocampus_total_min_ml,
+      registration_dice_min, synthseg_qc_min). Screening heuristics, not clinical cut-offs.
+    defaultValue: "{}"
+# Each input in its own folder (placement: subfolder) when linked from an upstream step;
+# without links the app finds the files anywhere under INPUT_DIR by their BIDS names.
+inputs:
+  - name: volumes
+    description: SynthSeg --vol CSVs (<sub>_volumes.csv, one row per subject, and/or a combined volumes.csv), volumes in mm3.
+    mediaTypes:
+      - text/csv
+    placement: subfolder
+    required: false
+  - name: qc
+    description: SynthSeg --qc CSVs (<sub>_qc.csv), one score per region in 0-1.
+    mediaTypes:
+      - text/csv
+    placement: subfolder
+    required: false
+  - name: labels
+    description: SynthSeg label maps <sub>_dseg.nii.gz (FreeSurfer label values); volumes are counted from them when no volumes CSV is given.
+    mediaTypes:
+      - application/x-nifti-gz
+      - application/x-nifti
+    placement: subfolder
+    required: false
+  - name: brain
+    description: Skull-stripped T1w <sub>_desc-brain_T1w.nii.gz, the background of the overlay figures.
+    mediaTypes:
+      - application/x-nifti-gz
+      - application/x-nifti
+    placement: subfolder
+    required: false
+  - name: mask
+    description: Brain mask <sub>_desc-brain_mask.nii.gz; the intracranial volume comes from it when present.
+    mediaTypes:
+      - application/x-nifti-gz
+      - application/x-nifti
+    placement: subfolder
+    required: false
+  - name: warped
+    description: T1w in MNI space, <sub>_space-MNI152NLin2009cAsym_T1w.nii.gz, shown with the template's edges.
+    mediaTypes:
+      - application/x-nifti-gz
+      - application/x-nifti
+    placement: subfolder
+    required: false
+  - name: transforms
+    description: The registration step's <sub>_registration.json ({dice, ...}); its Dice is shown as the registration check. Other files in the folder are ignored.
+    mediaTypes:
+      - application/json
+      - application/octet-stream
+      - application/x-nifti-gz
+    placement: subfolder
+    required: false
+  - name: lesions
+    description: WMH masks <sub>_desc-wmh_mask.nii.gz (and _desc-wmh_probseg.nii.gz), overlaid in red; counted when no lesion table is given.
+    mediaTypes:
+      - application/x-nifti-gz
+      - application/x-nifti
+    placement: subfolder
+    required: false
+  - name: lesion-volumes
+    description: Lesion tables <sub>_lesions.csv (subject,lesion_volume_mm3,lesion_count).
+    mediaTypes:
+      - text/csv
+    placement: subfolder
+    required: false
+  - name: metadata
+    description: The prep step's images.json (per-image records with subject, modality, voxel size, shape, scanner fields) and BIDS sidecar JSONs.
+    mediaTypes:
+      - application/json
+    placement: subfolder
+    required: false
+# Two outputs: each is written to its own folder, OUTPUT_DIR/<name>/.
+outputs:
+  - name: report
+    description: >-
+      index.html (cohort table, flags, charts), <sub>/report.html with PNG figures per subject,
+      and provenance.json. Self-contained: no scripts, no external resources.
+    mediaTypes:
+      - text/html
+      - image/png
+      - application/json
+  - name: tables
+    description: volumes.csv (one row per subject: ICV, structure volumes, % ICV, asymmetry indices, WMH, registration Dice, QC, flags) and metrics.json (the same nested, with the cohort summary and flags).
+    mediaTypes:
+      - text/csv
+      - application/json

@@ -1,0 +1,78 @@
+{% extends "base.html.j2" %}
+{% block title %}{{ subject }} — {{ title }}{% endblock %}
+{% block body %}
+<p class="muted"><a href="../index.html">← cohort</a></p>
+<h1>{{ subject }}</h1>
+<p class="sub">{{ title }}</p>
+
+<div class="card">
+<dl class="kv">
+  <dt>Modalities</dt><dd>{{ header.modalities or "–" }}</dd>
+  <dt>Voxel size</dt><dd>{{ header.voxel_size or "–" }}</dd>
+  <dt>Image shape</dt><dd>{{ header.shape or "–" }}</dd>
+  {% for key, value in header.scanner.items() %}<dt>{{ key }}</dt><dd>{{ value }}</dd>{% endfor %}
+  <dt>Volumes from</dt><dd>{{ m.volumes_source or "–" }}</dd>
+  <dt>ICV from</dt><dd>{{ m.icv.source or "–" }}</dd>
+</dl>
+</div>
+
+<h2>Flags</h2>
+<div class="card">
+{% if flags %}<ul>{% for f in flags %}<li><span class="flag">{{ f.check }}</span> {{ f.message }}</li>{% endfor %}</ul>
+{% else %}<p class="ok">No checks outside their plausible range.</p>{% endif %}
+</div>
+
+<h2>Key metrics</h2>
+<div class="card wrap">
+<table>
+  <thead><tr><th>Metric</th><th class="num">Value</th><th>Note</th></tr></thead>
+  <tbody>
+  <tr><td>Intracranial volume</td><td class="num">{{ m.icv.mm3|ml }} mL</td><td class="muted">{{ m.icv.source or "unknown" }}</td></tr>
+  <tr><td>Grey matter</td><td class="num">{{ m.totals.gm|ml }} mL</td><td class="muted">{{ m.pct_icv.gm|num(1) }} % ICV</td></tr>
+  <tr><td>White matter</td><td class="num">{{ m.totals.wm|ml }} mL</td><td class="muted">{{ m.pct_icv.wm|num(1) }} % ICV</td></tr>
+  <tr><td>CSF</td><td class="num">{{ m.totals.csf|ml }} mL</td><td class="muted">{{ m.pct_icv.csf|num(1) }} % ICV</td></tr>
+  <tr><td>Hippocampus L / R</td><td class="num">{{ m.structures.left_hippocampus|ml(2) }} / {{ m.structures.right_hippocampus|ml(2) }} mL</td>
+      <td class="muted">asymmetry index {{ m.asymmetry.hippocampus|num(2, true) }}; {{ m.pct_icv.hippocampus|num(2) }} % ICV total</td></tr>
+  <tr><td>Lateral ventricles</td><td class="num">{{ m.totals.lateral_ventricle|ml(2) }} mL</td><td class="muted">{{ m.pct_icv.lateral_ventricles|num(2) }} % ICV; asymmetry {{ m.asymmetry.lateral_ventricle|num(2, true) }}</td></tr>
+  {% if m.wmh %}<tr><td>White matter hyperintensities</td><td class="num">{{ m.wmh.volume_mm3|ml(2) }} mL</td>
+      <td class="muted">{{ m.wmh.count if m.wmh.count is not none else "–" }} lesions; {{ m.wmh.pct_wm|num(2) }} % of white matter ({{ m.wmh.source }})</td></tr>{% endif %}
+  {% if m.registration %}<tr><td>MNI registration Dice</td><td class="num">{{ m.registration.dice|num(3) }}</td><td class="muted">brain-mask overlap with the template</td></tr>{% endif %}
+  {% if m.qc %}<tr><td>SynthSeg QC (min)</td><td class="num">{{ m.qc.min|num(2) }}</td>
+      <td class="muted">{% for region, score in m.qc.items() if region != "min" %}{{ region|label }} {{ score|num(2) }}{{ ", " if not loop.last }}{% endfor %}</td></tr>{% endif %}
+  </tbody>
+</table>
+</div>
+
+<h2>Figures</h2>
+{% if figures.segmentation %}<figure><img src="{{ figures.segmentation }}" alt="Segmentation over the T1w"><figcaption>SynthSeg label map over the skull-stripped T1w.</figcaption></figure>{% endif %}
+{% if figures.volumes %}<figure><img src="{{ figures.volumes }}" alt="Structure volumes, left vs right"><figcaption>Structure volumes, left (blue) vs right (orange).</figcaption></figure>{% endif %}
+{% if figures.mni %}<figure><img src="{{ figures.mni }}" alt="T1w in MNI space"><figcaption>T1w warped to MNI152 space, with the MNI152 template's edges in orange (registration check).</figcaption></figure>{% endif %}
+{% if figures.lesions %}<figure><img src="{{ figures.lesions }}" alt="WMH mask over the T1w"><figcaption>White matter hyperintensity mask (red) over the skull-stripped T1w.</figcaption></figure>{% endif %}
+{% if not (figures.segmentation or figures.volumes or figures.mni or figures.lesions) %}<p class="muted">No figures: no label map, brain image or warped image was given.</p>{% endif %}
+
+<h2>All structures</h2>
+<div class="card wrap">
+<table>
+  <thead><tr><th>Structure</th><th class="num">Left mL</th><th class="num">Right mL</th><th class="num">Total mL</th><th class="num">% ICV</th><th class="num">Asymmetry</th></tr></thead>
+  <tbody>
+  {% for row in structure_rows %}
+  <tr><td>{{ row.name }}</td><td class="num">{{ row.left|ml(2) }}</td><td class="num">{{ row.right|ml(2) }}</td>
+      <td class="num">{{ row.total|ml(2) }}</td><td class="num">{{ row.pct|num(2) }}</td><td class="num">{{ row.ai|num(2, true) }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if sidecars %}
+<h2>Acquisition metadata</h2>
+<div class="card">
+{% for name, fields in sidecars.items() %}
+<h3>{{ name }}</h3>
+<dl class="kv">{% for key, value in fields.items() %}<dt>{{ key }}</dt><dd>{{ value }}</dd>{% endfor %}</dl>
+{% endfor %}
+</div>
+{% endif %}
+
+<h2>Inputs</h2>
+<div class="card"><dl class="kv">{% for name, path in inputs.items() %}<dt>{{ name }}</dt><dd><code>{{ path }}</code></dd>{% endfor %}</dl></div>
+{% endblock %}

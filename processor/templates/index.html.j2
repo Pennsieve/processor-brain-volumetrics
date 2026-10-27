@@ -1,0 +1,71 @@
+{% extends "base.html.j2" %}
+{% block body %}
+<h1>{{ title }}</h1>
+<p class="sub">Cohort report: {{ subjects|length }} subject{{ "" if subjects|length == 1 else "s" }}{% if skipped %}, {{ skipped|length }} skipped{% endif %}.
+  Volumes in mL; percentages of intracranial volume (ICV).</p>
+
+<div class="card wrap">
+<table>
+  <thead><tr>
+    <th>Subject</th><th class="num">ICV mL</th><th class="num">GM %</th><th class="num">WM %</th><th class="num">CSF %</th>
+    <th class="num">Hippocampus L / R mL</th><th class="num">AI hipp.</th><th class="num">Lat. vent. %</th>
+    <th class="num">WMH mL (n)</th><th class="num">Reg. Dice</th><th class="num">QC min</th><th>Flags</th>
+  </tr></thead>
+  <tbody>
+  {% for s in subjects %}{% set r = s.row %}
+  <tr>
+    <td><a href="{{ s.subject }}/report.html">{{ s.subject }}</a></td>
+    <td class="num">{{ r.icv_mm3|ml }}</td>
+    <td class="num">{{ r.gm_pct_icv|num(1) }}</td>
+    <td class="num">{{ r.wm_pct_icv|num(1) }}</td>
+    <td class="num">{{ r.csf_pct_icv|num(1) }}</td>
+    <td class="num">{{ r.left_hippocampus_mm3|ml(2) }} / {{ r.right_hippocampus_mm3|ml(2) }}</td>
+    <td class="num">{{ r.ai_hippocampus|num(2, true) }}</td>
+    <td class="num">{{ r.lateral_ventricles_pct_icv|num(2) }}</td>
+    <td class="num">{% if r.wmh_volume_mm3 is not none %}{{ r.wmh_volume_mm3|ml(2) }} ({{ r.wmh_count if r.wmh_count is not none else "–" }}){% else %}–{% endif %}</td>
+    <td class="num">{{ r.registration_dice|num(2) }}</td>
+    <td class="num">{{ r.synthseg_qc_min|num(2) }}</td>
+    <td>{% if s.flags %}{% for f in s.flags %}<span class="flag" title="{{ f.message }}">{{ f.check }}</span>{% endfor %}{% else %}<span class="ok">none</span>{% endif %}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if skipped %}
+<p class="note">Skipped (no volumes CSV and no label map, or a failure): {% for s in skipped %}<b>{{ s.subject }}</b> — {{ s.reason }}{{ "; " if not loop.last }}{% endfor %}</p>
+{% endif %}
+
+<h2>Cohort charts</h2>
+<div class="grid">
+{% for key, caption in [("icv", "Intracranial volume per subject (▲ = flagged subject)"), ("tissue", "Grey matter, white matter and CSF as % of ICV"),
+                        ("hippocampus", "Hippocampal volume, left vs right"), ("ventricles", "Lateral ventricles as % of ICV"),
+                        ("wmh", "White matter hyperintensity volume")] %}
+  {% if figures.get(key) %}<figure><img src="{{ figures[key] }}" alt="{{ caption }}"><figcaption>{{ caption }}</figcaption></figure>{% endif %}
+{% endfor %}
+</div>
+
+<h2>Cohort summary</h2>
+<div class="card wrap">
+<table>
+  <thead><tr><th>Metric</th><th class="num">n</th><th class="num">mean</th><th class="num">sd</th><th class="num">min</th><th class="num">max</th></tr></thead>
+  <tbody>
+  {% for col, stat in summary.columns.items() %}
+  <tr><td>{{ col|label }}</td><td class="num">{{ stat.n }}</td><td class="num">{{ stat.mean|num(3) }}</td>
+      <td class="num">{{ stat.sd|num(3) }}</td><td class="num">{{ stat.min|num(3) }}</td><td class="num">{{ stat.max|num(3) }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p class="muted">icv_mm3 and wmh_volume_mm3 in mm³; the rest in % of ICV, asymmetry index 2(L−R)/(L+R), Dice, or QC score (0–1).</p>
+</div>
+
+<h2>Flag thresholds</h2>
+<div class="card">
+<dl class="kv">
+{% for key, value in thresholds.items() %}<dt>{{ key }}</dt><dd>{{ value }}</dd>{% endfor %}
+</dl>
+<p class="muted">Screening heuristics, not clinical cut-offs; set <code>FLAG_THRESHOLDS</code> to change them.</p>
+</div>
+
+<p class="muted">Tables: <code>../tables/volumes.csv</code>, <code>../tables/metrics.json</code>.</p>
+{% endblock %}
