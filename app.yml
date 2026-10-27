@@ -121,7 +121,10 @@ outputs:
       - image/png
       - application/json
   - name: tables
-    description: volumes.csv (one row per subject: ICV, structure volumes, % ICV, asymmetry indices, WMH, registration Dice, QC, flags) and metrics.json (the same nested, with the cohort summary and flags).
+    description: >-
+      volumes.csv (one row per subject: ICV, structure volumes, % ICV, asymmetry
+      indices, WMH, registration Dice, QC, flags) and metrics.json (the same
+      nested, with the cohort summary and flags).
     mediaTypes:
       - text/csv
       - application/json
