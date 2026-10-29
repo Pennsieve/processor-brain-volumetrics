@@ -1,0 +1,90 @@
+cff-version: "1.2.0"
+message: If you use this app, please cite it and the works it builds on, listed under references.
+type: software
+title: Brain Volumetrics Report
+abstract: The report step of the Clinical Brain MRI Volumetrics workflow. Derives per-subject volumetrics
+  (ICV, tissue fractions, asymmetry, WMH load, screening flags) from the upstream outputs and writes offline
+  HTML reports with nilearn overlays, a cohort CSV and a metrics JSON.
+authors:
+- name: Pennsieve (University of Pennsylvania)
+repository-code: https://github.com/pennsieve-apps/processor-brain-volumetrics
+license: Apache-2.0
+keywords:
+- neuroimaging
+- mri
+- nifti
+- report
+- nilearn
+- synthseg
+references:
+- type: article
+  title: Machine learning for neuroimaging with scikit-learn
+  authors:
+  - family-names: Abraham
+    given-names: Alexandre
+  - family-names: Pedregosa
+    given-names: Fabian
+  - family-names: Eickenberg
+    given-names: Michael
+  - family-names: Gervais
+    given-names: Philippe
+  - family-names: Mueller
+    given-names: Andreas
+  - family-names: Kossaifi
+    given-names: Jean
+  - family-names: Gramfort
+    given-names: Alexandre
+  - family-names: Thirion
+    given-names: Bertrand
+  - family-names: Varoquaux
+    given-names: Gaël
+  year: 2014
+  journal: Frontiers in Neuroinformatics
+  volume: 8
+  doi: 10.3389/fninf.2014.00014
+- type: article
+  title: 'SynthSeg: Segmentation of brain MRI scans of any contrast and resolution without retraining'
+  authors:
+  - family-names: Billot
+    given-names: Benjamin
+  - family-names: Greve
+    given-names: Douglas N.
+  - family-names: Puonti
+    given-names: Oula
+  - family-names: Thielscher
+    given-names: Axel
+  - family-names: Van Leemput
+    given-names: Koen
+  - family-names: Fischl
+    given-names: Bruce
+  - family-names: Dalca
+    given-names: Adrian V.
+  - family-names: Iglesias
+    given-names: Juan Eugenio
+  year: 2023
+  journal: Medical Image Analysis
+  volume: 86
+  start: '102789'
+  doi: 10.1016/j.media.2023.102789
+- type: article
+  title: Robust machine learning segmentation for large-scale analysis of heterogeneous clinical brain
+    MRI datasets
+  authors:
+  - family-names: Billot
+    given-names: Benjamin
+  - family-names: Magdamo
+    given-names: Colin
+  - family-names: Cheng
+    given-names: You
+  - family-names: Arnold
+    given-names: Steven E.
+  - family-names: Das
+    given-names: Sudeshna
+  - family-names: Iglesias
+    given-names: Juan Eugenio
+  year: 2023
+  journal: Proceedings of the National Academy of Sciences
+  volume: 120
+  issue: '9'
+  start: e2216399120
+  doi: 10.1073/pnas.2216399120

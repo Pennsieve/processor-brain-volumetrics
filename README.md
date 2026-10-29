@@ -149,7 +149,7 @@ input and output paths (relative), the command and the seconds taken.
 - SynthSeg (label scheme, volumes and QC): Billot B, Greve DN, Puonti O, Thielscher A, Van Leemput K,
   Fischl B, Dalca AV, Iglesias JE. SynthSeg: Segmentation of brain MRI scans of any contrast and
   resolution without retraining. *Med Image Anal* 2023; 86:102789; and Billot B et al. Robust machine
-  learning segmentation for large-scale analytical multi-site brain MRI studies. *PNAS* 2023;
+  learning segmentation for large-scale analysis of heterogeneous clinical brain MRI datasets. *PNAS* 2023;
   120(9):e2216399120.
 
 See `THIRD_PARTY.md` for licences.
