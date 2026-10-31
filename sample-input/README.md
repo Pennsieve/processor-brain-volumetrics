@@ -18,7 +18,7 @@ the linked layout (`INPUT_DIR/<input>/…`) and in a flat, nested layout.
 To try real data, run the upstream steps on an OpenNeuro T1w, e.g.
 
 ```sh
-aws s3 cp --no-sign-request s3://openneuro.org/ds000117/sub-01/anat/sub-01_T1w.nii.gz data/
+aws s3 cp --no-sign-request s3://openneuro.org/ds000117/sub-01/ses-mri/anat/sub-01_ses-mri_T1w.nii.gz data/sub-01_T1w.nii.gz
 ```
 
 and point `INPUT_DIR` at a folder holding their outputs (linked, or all together).
